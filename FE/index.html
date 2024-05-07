@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo</title>
+    <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.27/vue.cjs.min.js"
+        integrity="sha512-0iiTIkY3h448LMfv6vcOAgwsnSIQ4QYgSyAbyWDtqrig7Xc8PAukJjyXCeYxVGncMyIbd6feVBRwoRayeEvmJQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="main.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        clifford: '#da373d',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="./style/css/customize.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+</head>
+
+<body id="app" class="text-center">
+    <div class="max-w-[800px] w-full mx-auto inline-block text-left">
+
+   
+    <h1 class="text-xl font-bold  text-clifford">
+        DEMO
+    </h1>
+    <label class="mdc-text-field mdc-text-field--outlined">
+        <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+                <span class="mdc-floating-label" id="my-label-id"></span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+        </span>
+        <input type="text" v-model="promptInput" class="mdc-text-field__input" aria-labelledby="my-label-id">
+    </label>
+    
+    <div class="flex gap-x-[12px] mt-[12px]">
+        <a href="javascript:;" class="inline-block">
+            <span class="material-symbols-outlined">
+                mic
+            </span>
+        </a>
+        <a href="javascript:;" class="inline-block">
+            <span class="material-symbols-outlined">
+                photo_camera
+                </span>
+        </a>
+    </div>
+    
+    <div>
+        <button class="mdc-button foo-button" @click="onClickGenerate">
+            <div class="mdc-button__ripple"></div>
+            <span class="mdc-button__label">Generate</span>
+        </button>
+    </div>
+
+    <h5 class="mt-[20px]">Chat</h5>
+    <ul>
+        <li v-for="(item, index) in getReversedAnswerArr()" v-if="getReversedAnswerArr().length > 0">
+            <h6>{{item.prompt}}</h6>
+            <p>{{item.answer}}</p>
+        </li>
+    
+    </ul>
+</div>
+</body>
+
+</html>

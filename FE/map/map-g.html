@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Maps Pedestrian Navigation</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSl0VkkRkU1LXjDqcq3n4fS32c8WQIK6E&libraries=places"></script>
+</head>
+<body>
+  <h1>Google Maps Pedestrian Navigation</h1>
+  <form>
+    <label for="origin">Origin:</label>
+    <input type="text" id="origin">
+    <label for="destination">Destination:</label>
+    <input type="text" id="destination">
+    <input type="submit" value="Go">
+  </form>
+  <div id="map"></div>
+  <script>
+    // Initialize the Google Maps API
+    const map = new google.maps.Map(document.getElementById("map"), {
+      center: { lat: -33.8688, lng: 151.2195 },
+      zoom: 13,
+    });
+
+    // Create a DirectionsService object
+    const directionsService = new google.maps.DirectionsService();
+
+    // Create a DirectionsRenderer object
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+      map: map,
+    });
+
+    // Listen for the form submit event
+    document.querySelector("form").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      // Get the origin and destination from the form
+      const origin = document.querySelector("#origin").value;
+      const destination = document.querySelector("#destination").value;
+
+      // Create a DirectionsRequest object
+      const request = {
+        origin: origin,
+        destination: destination,
+        travelMode: google.maps.TravelMode.WALKING,
+      };
+
+      // Route the directions and display them on the map
+      directionsService.route(request, (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+          directionsRenderer.setDirections(result);
+        } else {
+          alert("Could not get directions.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
