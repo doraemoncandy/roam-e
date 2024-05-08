@@ -55,4 +55,39 @@ const generateResponse = async (req, res) => {
   }
 };
 
-module.exports = { generateResponse };
+
+//#region T2S voice 
+
+const textToSpeech = require('@google-cloud/text-to-speech');
+const fs = require('fs');
+const util = require('util');
+// const playsound = require('play-sound');
+const player = require('play-sound')(opts = {})
+const outputTxt2SpeechFile = 'output.mp3';
+const client = new textToSpeech.TextToSpeechClient();
+let generateT2Sresponse = async (req, res) => {
+  const { text } = req.body;
+
+  if (!text || text.length === 0) {
+    return res.status(400).json({ error: "The 'text' property cannot be empty." });
+  }
+  const request = {
+    input: {text: text},
+    voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
+    audioConfig: {audioEncoding: 'MP3'},
+  };
+
+  const [response] = await client.synthesizeSpeech(request);
+    const writeFile = util.promisify(fs.writeFile);
+    await writeFile(outputTxt2SpeechFile, response.audioContent, 'binary');
+    console.log(`Audio content written to file: ${outputTxt2SpeechFile}`);
+    player.play(outputTxt2SpeechFile, function(err){
+      if (err) throw err
+    })
+    res.send({ response: 'OK' });
+
+} //end: T2S response
+
+//#endregion voice
+
+module.exports = { generateResponse, generateT2Sresponse };

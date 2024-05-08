@@ -2,7 +2,7 @@
 
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
-const { generateResponse } = require('./controller');
+const { generateResponse, generateT2Sresponse } = require('./controller');
 
 const express = require('express');
 const multer  = require('multer');
@@ -25,6 +25,8 @@ app.get('/', (req, res) => {
 });
 
 app.post("/generate", generateResponse);
+
+app.post('/t2s', generateT2Sresponse);
 
 app.listen(port, () => {
   console.log('Server is running on port  '  + port);
