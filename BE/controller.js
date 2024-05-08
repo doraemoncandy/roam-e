@@ -73,7 +73,7 @@ let generateT2Sresponse = async (req, res) => {
   }
   const request = {
     input: {text: text},
-    voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
+    voice: {languageCode: 'zh-TW', ssmlGender: 'NEUTRAL'},
     audioConfig: {audioEncoding: 'MP3'},
   };
 
@@ -81,9 +81,8 @@ let generateT2Sresponse = async (req, res) => {
     const writeFile = util.promisify(fs.writeFile);
     await writeFile(outputTxt2SpeechFile, response.audioContent, 'binary');
     console.log(`Audio content written to file: ${outputTxt2SpeechFile}`);
-    player.play(outputTxt2SpeechFile, function(err){
-      if (err) throw err
-    })
+    player.play(outputTxt2SpeechFile, { stayOpen: true })
+
     res.send({ response: 'OK' });
 
 } //end: T2S response
