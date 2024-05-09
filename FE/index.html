@@ -38,7 +38,7 @@
 
    
     <h1 class="text-xl font-bold  text-clifford">
-        DEMO {{promptInput}}
+        DEMO 
     </h1>
     <label class="mdc-text-field mdc-text-field--outlined">
         <span class="mdc-notched-outline">
@@ -57,12 +57,30 @@
                 mic
             </span>
         </a>
-        <a href="javascript:;" class="inline-block">
+        <a href="javascript:;" class="inline-block" @click="openCamera">
             <span class="material-symbols-outlined">
                 photo_camera
-                </span>
+            </span>
         </a>
+        <a href="javascript:;" class="inline-block" @click="clearImage">
+            <span class="material-symbols-outlined">
+                hide_image
+            </span>
+        </a>
+        <a href="javascript:;" class="inline-block" @click="clickCapture">
+            <span class="material-symbols-outlined">
+                done
+            </span>
+        </a>
+        <label for="upload">
+            <span class="material-symbols-outlined">
+                image
+            </span>
+        </label>
+
+        <input id="upload" type="file" accept="image/*" capture="camera">
     </div>
+    
     
     <div>
         <button class="mdc-button foo-button" @click="onClickGenerate">
@@ -71,11 +89,18 @@
         </button>
     </div>
 
+    <!-- show open camera screen -->
+    <div>
+        <video autoplay playsinline></video>
+        <canvas></canvas>
+    </div>
+     <!-- end of show open camera screen -->
+
     <h5 class="mt-[20px]">Chat</h5>
     <ul>
         <li v-for="(item, index) in getReversedAnswerArr()" v-if="getReversedAnswerArr().length > 0">
-            <h6>{{item.prompt}}</h6>
-            <p>{{item.answer}}</p>
+            <h6>王大媽: {{item.prompt}}</h6>
+            <p>AI小精靈: {{item.answer}}</p>
         </li>
     
     </ul>

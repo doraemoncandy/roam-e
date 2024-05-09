@@ -4,5 +4,6 @@ dist
 dist-ssr
 *.local
 .DS_Store
-.mp3
-BE/.mp3
+output.mp3
+BE/*.mp3
+BE/uploads

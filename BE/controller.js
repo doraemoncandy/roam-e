@@ -1,21 +1,31 @@
-// import { Request, Response } from "express";
 
-// import { GoogleGenerativeAI } from '@google/generative-ai';
-// import dotenv from "dotenv";
-const express = require('express');
-const Request = express.Request;
-const Response = express.Response;
+// Gemini 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const dotenv = require('dotenv');
+const {VertexAI} = require('@google-cloud/vertexai');
+// Initialize Vertex with your Cloud project and location
+const vertex_ai = new VertexAI({project: 'serene-art-421905', location: 'us-central1'});
 
+// env 
+const dotenv = require('dotenv');
 dotenv.config();
+
+//fs
+const fs = require('fs');
+
+/**
+ * Mode - 
+ * 1. gemini-1.5-pro-preview-0409
+ * 
+ */
+const modelPro = 'gemini-1.5-pro-preview-0409';
+const modelId = "gemini-pro";
 
 // GoogleGenerativeAI required config
 const configuration = new GoogleGenerativeAI(process.env.API_KEY);
 
 
 // Model initialization
-const modelId = "gemini-pro";
+
 const model = configuration.getGenerativeModel({ model: modelId });
 
 //These arrays are to maintain the history of the conversation
@@ -56,12 +66,90 @@ const generateResponse = async (req, res) => {
 };
 
 
-//#region T2S voice 
+//#region  T2I
+
+// Instantiate the models
+const generativeModel = vertex_ai.preview.getGenerativeModel({
+  model: modelPro,
+  generationConfig: {
+    'maxOutputTokens': 8192,
+    'temperature': 1,
+    'topP': 0.95,
+  },
+  safetySettings: [
+    {
+        'category': 'HARM_CATEGORY_HATE_SPEECH',
+        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+    },
+    {
+        'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+    },
+    {
+        'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+    },
+    {
+        'category': 'HARM_CATEGORY_HARASSMENT',
+        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+    }
+  ],
+});
+
+
+
+let generateImgContent = async (req, res) => {
+  console.log('req.body',req)
+  const { prompt } = req.body;
+  const img = req.file; // multer 會將上傳的檔案放在 req.file
+
+  console.log('img',img)
+  
+
+// 讀取image內容
+const fileContent = fs.readFileSync(img.path);
+// file content to base64
+const base64Data = fileContent.toString('base64');
+
+
+  const imageObj = {
+    inlineData: {
+      mimeType: 'image/png',
+      data:base64Data
+    }
+  };
+
+  const reqObj = {
+    contents: [
+      {role: 'user', parts: [imageObj, {text: `${prompt}`}]}
+    ],
+  };
+
+  try {
+    const streamingResp = await generativeModel.generateContentStream(reqObj);
+    console.log('streamingResp',streamingResp);
+
+    let response = '';
+   
+    response +=  JSON.stringify(await streamingResp.response);
+    res.send(response); // show text
+  } catch (error) {
+    console.error('An error occurred:', error);
+    res.status(500).send({ error: 'An error occurred while generating image content.' });
+  }
+}
+
+
+
+//#endregion T2I
+
+
+//#region voice 
+
+//#region T2S
 
 const textToSpeech = require('@google-cloud/text-to-speech');
-const fs = require('fs');
 const util = require('util');
-// const playsound = require('play-sound');
 const player = require('play-sound')(opts = {})
 const outputTxt2SpeechFile = 'output.mp3';
 const client = new textToSpeech.TextToSpeechClient();
@@ -87,6 +175,10 @@ let generateT2Sresponse = async (req, res) => {
 
 } //end: T2S response
 
+//#region  S2T
+
+//#endregion S2T
+
 //#endregion voice
 
-module.exports = { generateResponse, generateT2Sresponse };
+module.exports = { generateResponse, generateT2Sresponse, generateImgContent };
