@@ -1,16 +1,18 @@
 
 // Gemini 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const {VertexAI} = require('@google-cloud/vertexai');
+const { VertexAI } = require('@google-cloud/vertexai');
 
 const speech = require('@google-cloud/speech');
 
 // Initialize Vertex with your Cloud project and location
-const vertex_ai = new VertexAI({project: 'serene-art-421905', location: 'us-central1'});
+const vertex_ai = new VertexAI({ project: 'serene-art-421905', location: 'us-central1' });
 
 // env 
 const dotenv = require('dotenv');
 dotenv.config();
+
+const { v1beta1: { PredictionServiceClient } } = require('@google-cloud/aiplatform');
 
 
 
@@ -36,7 +38,7 @@ const model = configuration.getGenerativeModel({ model: modelId });
 //These arrays are to maintain the history of the conversation
 const conversationContext = [];
 const currentMessages = [];
-
+let conversationHistory = [];
 
 
 
@@ -52,56 +54,82 @@ const generativeModel = vertex_ai.preview.getGenerativeModel({
   },
   safetySettings: [
     {
-        'category': 'HARM_CATEGORY_HATE_SPEECH',
-        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+      'category': 'HARM_CATEGORY_HATE_SPEECH',
+      'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
     },
     {
-        'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+      'category': 'HARM_CATEGORY_DANGEROUS_CONTENT',
+      'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
     },
     {
-        'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+      'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+      'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
     },
     {
-        'category': 'HARM_CATEGORY_HARASSMENT',
-        'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
+      'category': 'HARM_CATEGORY_HARASSMENT',
+      'threshold': 'BLOCK_MEDIUM_AND_ABOVE'
     }
   ],
 });
 
 // Controller function to handle chat conversation
 const generateResponse = async (req, res) => {
+  // try {
+  //   const { prompt } = req.body;
+
+  //   // Restore the previous context
+  //   for (const [inputText, responseText] of conversationContext) {
+  //     currentMessages.push({ role: "user", parts: inputText });
+  //     currentMessages.push({ role: "model", parts: responseText });
+  //   }
+
+  //   const chat = model.startChat({
+  //     history: currentMessages,
+  //     generationConfig: {
+  //       maxOutputTokens: 99999999,
+  //     },
+  //   });
+
+  //   const result = await chat.sendMessage(prompt);
+  //   console.log(prompt);
+  //   const response = await result.response;
+  //   const responseText = response.text();
+
+  //   // Stores the conversation
+  //   conversationContext.push([prompt, responseText]);
+  //   res.send({ response: responseText });
+
+  // } catch (err) {
+  //   console.error(err);
+  //   res.status(500).json({ message: "/generate API Error" });
+  // }
+  const { prompt } = req.body;
+
+  // Add the new message to the conversation history
+  conversationHistory.push({ role: 'user', parts: [{ text: `${prompt}` }] });
+
+  const reqObj = {
+    contents: conversationHistory,
+  };
+
   try {
-    const { prompt } = req.body;
+    const streamingResp = await generativeModel.generateContentStream(reqObj);
+    console.log(streamingResp)
+    let response = '';
 
-    // Restore the previous context
-    for (const [inputText, responseText] of conversationContext) {
-      currentMessages.push({ role: "user", parts: inputText });
-      currentMessages.push({ role: "model", parts: responseText });
-    }
+    const modelResponse = await streamingResp.response;
+    // console.log('modelResponse',modelResponse)
+    // console.log('candidates parts 0 txt',modelResponse.candidates[0].content.parts[0].text)
 
-    const chat = model.startChat({
-      history: currentMessages,
-      generationConfig: {
-        maxOutputTokens: 99999999,
-      },
-    });
+    response += modelResponse.candidates[0].content.parts[0].text
 
-    const result = await chat.sendMessage(prompt);
-    console.log(prompt);
-    const response = await result.response;
-    const responseText = response.text();
-
-    // Stores the conversation
-    conversationContext.push([prompt, responseText]);
-    res.send({ response: responseText });
-
-  } catch (err) {
-    console.error(err);
+    // Add the model's response to the conversation history
+    conversationHistory.push({ role: 'model', parts: [{ text: `${response}` }] });
+    res.send(response); // show text
+  } catch (error) {
+    console.error('An error occurred:', error);
     res.status(500).json({ message: "/generate API Error" });
   }
-  
 
   // end 
 };
@@ -110,39 +138,39 @@ const generateResponse = async (req, res) => {
 
 
 let generateImgContent = async (req, res) => {
-  console.log('req.body',req)
+  console.log('req.body', req)
   const { prompt } = req.body;
   const img = req.file; // multer 會將上傳的檔案放在 req.file
 
-  console.log('img',img)
-  
+  console.log('img', img)
 
-// 讀取image內容
-const fileContent = fs.readFileSync(img.path);
-// file content to base64
-const base64Data = fileContent.toString('base64');
+
+  // 讀取image內容
+  const fileContent = fs.readFileSync(img.path);
+  // file content to base64
+  const base64Data = fileContent.toString('base64');
 
 
   const imageObj = {
     inlineData: {
       mimeType: 'image/png',
-      data:base64Data
+      data: base64Data
     }
   };
 
   const reqObj = {
     contents: [
-      {role: 'user', parts: [imageObj, {text: `${prompt}`}]}
+      { role: 'user', parts: [imageObj, { text: `${prompt}` }] }
     ],
   };
 
   try {
     const streamingResp = await generativeModel.generateContentStream(reqObj);
-    console.log('streamingResp',streamingResp);
 
     let response = '';
-   
-    response +=  JSON.stringify(await streamingResp.response);
+
+    response += JSON.stringify(await streamingResp.response);
+    
     res.send(response); // show text
   } catch (error) {
     console.error('An error occurred:', error);
@@ -171,18 +199,18 @@ let generateT2Sresponse = async (req, res) => {
     return res.status(400).json({ error: "The 'text' property cannot be empty." });
   }
   const request = {
-    input: {text: text},
-    voice: {languageCode: 'zh-TW', ssmlGender: 'NEUTRAL'},
-    audioConfig: {audioEncoding: 'MP3'},
+    input: { text: text },
+    voice: { languageCode: 'zh-TW', ssmlGender: 'NEUTRAL' },
+    audioConfig: { audioEncoding: 'MP3' },
   };
 
   const [response] = await client.synthesizeSpeech(request);
-    const writeFile = util.promisify(fs.writeFile);
-    await writeFile(outputTxt2SpeechFile, response.audioContent, 'binary');
-    console.log(`Audio content written to file: ${outputTxt2SpeechFile}`);
-    player.play(outputTxt2SpeechFile, { stayOpen: true })
+  const writeFile = util.promisify(fs.writeFile);
+  await writeFile(outputTxt2SpeechFile, response.audioContent, 'binary');
+  console.log(`Audio content written to file: ${outputTxt2SpeechFile}`);
+  player.play(outputTxt2SpeechFile, { stayOpen: true })
 
-    res.send({ response: 'OK' });
+  res.send({ response: 'OK' });
 
 } //end: T2S response
 

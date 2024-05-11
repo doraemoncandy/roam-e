@@ -74,7 +74,7 @@ createApp({
                     // Your request body goes here
                     prompt: promptInput.value
                 })
-                const data = handleText(response.data.response);
+                const data = handleText(response.data);
                 console.log('data',data)
                 answerArr.value[currentIndex].answer = data;
                 // txt2Speech
