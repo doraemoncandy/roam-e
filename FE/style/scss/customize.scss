@@ -8,3 +8,87 @@
   'GRAD' 0,
   'opsz' 24
 }
+
+/**
+ * loading
+ */
+
+.google-loading>div:before{
+  content:'';
+  position:absolute;
+  z-index:11;
+  top:0;
+  left:0px;
+  width:10px;
+  height:20px;
+  border-radius:0 10px 10px 0;
+  transform-origin:0 50%;
+  transform:rotateY(0deg) rotateZ(0deg);
+  animation:flipColor 4s linear infinite both,flip 4s linear infinite both;
+}
+@keyframes flip{
+  0%    {-webkit-transform:rotateY(0deg);}
+  12.5% {-webkit-transform:rotateY(90deg);}
+  25%   {-webkit-transform:rotateY(180deg);}
+  37.5% {-webkit-transform:rotateY(90deg);}
+  50%   {-webkit-transform:rotateY(0deg);}
+  62.5% {-webkit-transform:rotateY(90deg);}
+  75%   {-webkit-transform:rotateY(180deg);}
+  87.5% {-webkit-transform:rotateY(90deg);}
+  100%  {-webkit-transform:rotateY(0deg);}
+}
+@keyframes flipColor{
+  0%    {background: #f52d27;}
+  12.5% {background: #7d0906;}
+  25%   {background: #ffd539;}
+  37.5% {background: #9f7d00;}
+  50%   {background: #00b262;}
+  62.5% {background: #00190e;}
+  75%   {background: #3a71f8;}
+  87.5% {background: #052e94;}
+  100%  {background: #f52d27;}
+}
+
+//end of loading
+
+
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px
+}
+
+.ball {
+  width: 10px;
+  height: 10px;
+  border-radius: 11px;
+  margin: 0 10px;
+  
+  animation: 2s bounce ease infinite;
+}
+
+.blue {
+  background-color: #4285F5;
+}
+
+.red {
+  background-color: #EA4436;
+  animation-delay: .25s;
+}
+
+.yellow {
+  background-color: #FBBD06;
+  animation-delay: .5s;
+}
+
+.green {
+  background-color: #34A952;
+  animation-delay: .75s;
+}
+
+@keyframes bounce {  
+    50% {
+        transform: translateY(7px);
+    }
+}

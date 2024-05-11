@@ -2,12 +2,17 @@
 // Gemini 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {VertexAI} = require('@google-cloud/vertexai');
+
+const speech = require('@google-cloud/speech');
+
 // Initialize Vertex with your Cloud project and location
 const vertex_ai = new VertexAI({project: 'serene-art-421905', location: 'us-central1'});
 
 // env 
 const dotenv = require('dotenv');
 dotenv.config();
+
+
 
 //fs
 const fs = require('fs');
@@ -32,38 +37,7 @@ const model = configuration.getGenerativeModel({ model: modelId });
 const conversationContext = [];
 const currentMessages = [];
 
-// Controller function to handle chat conversation
-const generateResponse = async (req, res) => {
-  try {
-    const { prompt } = req.body;
 
-    // Restore the previous context
-    for (const [inputText, responseText] of conversationContext) {
-      currentMessages.push({ role: "user", parts: inputText });
-      currentMessages.push({ role: "model", parts: responseText });
-    }
-
-    const chat = model.startChat({
-      history: currentMessages,
-      generationConfig: {
-        maxOutputTokens: 10000,
-      },
-    });
-
-    const result = await chat.sendMessage(prompt);
-    console.log(prompt);
-    const response = await result.response;
-    const responseText = response.text();
-
-    // Stores the conversation
-    conversationContext.push([prompt, responseText]);
-    res.send({ response: responseText });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "/generate API Error" });
-  }
-};
 
 
 //#region  T2I
@@ -95,6 +69,43 @@ const generativeModel = vertex_ai.preview.getGenerativeModel({
     }
   ],
 });
+
+// Controller function to handle chat conversation
+const generateResponse = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    // Restore the previous context
+    for (const [inputText, responseText] of conversationContext) {
+      currentMessages.push({ role: "user", parts: inputText });
+      currentMessages.push({ role: "model", parts: responseText });
+    }
+
+    const chat = model.startChat({
+      history: currentMessages,
+      generationConfig: {
+        maxOutputTokens: 99999999,
+      },
+    });
+
+    const result = await chat.sendMessage(prompt);
+    console.log(prompt);
+    const response = await result.response;
+    const responseText = response.text();
+
+    // Stores the conversation
+    conversationContext.push([prompt, responseText]);
+    res.send({ response: responseText });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "/generate API Error" });
+  }
+  
+
+  // end 
+};
+
 
 
 
