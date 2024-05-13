@@ -42,7 +42,30 @@
 
 </head>
 
-<body id="app" class="text-center w-screen h-screen bg-gray-100 text-gray-800 p-10 border-box">
+<body id="app" class="text-center w-screen h-screen bg-gray-100 text-gray-800 p-10 border-box ">
+    <!-- popup -->
+    <div id="overlay" @click="closeFAB" :class="isOpenPopup ? 'dark-overlay': '' "></div>
+    <div class="fab" @click="openFAB" :class="isOpenPopup ? 'active': '' ">
+        <!-- <i class="material-icons fab-icon">add</i> -->
+        <div class="relative">
+            <video class="w-full" v-if="isOpenPopup" autoplay playsinline></video>
+            <canvas v-show="isIsHasImg" class="absolute left-0 top-0" :class="isIsHasImg? 'w-full h-auto': 'w-0 h-0'"></canvas>
+        </div>
+        <div class="mt-[20px] flex justify-center items-center w-full text-white gap-[12px]" v-show="isOpenPopup">
+            <a href="javascript:;" class="flex justify-center items-center w-[48px] h-[48px] bg-blue-600 border-box rounded-full" @click="clearImage">
+                <span class="material-symbols-outlined text-[32px]">
+                    hide_image
+                </span>
+            </a>
+            <a href="javascript:;" class="flex justify-center items-center w-[48px] h-[48px] bg-blue-600 border-box rounded-full" @click="clickCapture">
+                <span class="material-symbols-outlined text-[32px]">
+                    done
+                </span>
+            </a>
+        </div>
+    </div>
+
+    <!-- end of popup -->
     <div class="max-w-[1200px] w-full h-full mx-auto flex flex-col text-left">
 
         <h1 class="text-xl font-bold  text-clifford"> ROAM-E </h1>
@@ -50,10 +73,7 @@
         <!-- chat -->
         <div class="flex flex-col items-center justify-center w-full flex-1">
             <!-- show open camera screen -->
-        <div v-if="false">
-            <video autoplay playsinline></video>
-            <canvas></canvas>
-        </div>
+        
         <!-- end of show open camera screen -->
 
             <!-- Component Start -->
@@ -159,7 +179,11 @@
         <!-- end of chat -->
         <!-- btm control area -->
 
-        <div class="flex gap-x-[12px] mt-[12px] w-full items-center">
+        <div class="flex gap-x-[12px] mt-[12px] w-full items-center relative">
+            <!-- preview image -->
+            <div class="absolute top-[-30px]" v-show="isIsHasImg">
+                <canvas></canvas>
+            </div>
             
             
             <a href="javascript:;" class="inline-block" @click="openCamera">
@@ -167,16 +191,7 @@
                     photo_camera
                 </span>
             </a>
-            <a href="javascript:;" class="inline-block" @click="clearImage">
-                <span class="material-symbols-outlined">
-                    hide_image
-                </span>
-            </a>
-            <a href="javascript:;" class="inline-block" @click="clickCapture">
-                <span class="material-symbols-outlined">
-                    done
-                </span>
-            </a>
+            
             <label for="upload">
                 <span class="material-symbols-outlined">
                     image

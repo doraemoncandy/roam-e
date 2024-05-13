@@ -2,12 +2,14 @@ const { createApp, ref } = Vue
 
 createApp({
     setup() {
+        
         const message = ref('Hello vue!')
         let promptInput = ref('');
         let answerArr = ref([]);
         let currentTxtNeed2Speech;
         let imgData;
-        let isIsHasImg = ref(false);
+        let isIsHasImg = ref(false); // 是不是有上傳圖
+        
 
 
 
@@ -22,6 +24,42 @@ createApp({
         const apiUploadImg = `${apiHost}generateImg`;
 
         //#endregion API CONFIG
+
+
+        //#region popup
+        
+        //Variables
+        let isOpenPopup = ref(false);
+
+        // var overlay = $("#overlay"),
+        // fab = $(".fab"),
+        // cancel = $("#cancel"),
+        // submit = $("#submit");
+
+        // //fab click
+        // fab.on('click', openFAB);
+        // overlay.on('click', closeFAB);
+        // cancel.on('click', closeFAB);
+
+        function openFAB(event) {
+            if (event) event.preventDefault();
+            // fab.addClass('active');
+            // overlay.addClass('dark-overlay');
+            isOpenPopup.value = true;
+        }
+
+        function closeFAB(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+            isOpenPopup.value = false;
+            // fab.removeClass('active');
+            // overlay.removeClass('dark-overlay');
+
+        } 
+
+        //#endregion popup
 
         //#region handleText
         const handleText = (text) => {
@@ -102,6 +140,7 @@ createApp({
         } //end: txt2Speech
 
         const openCamera = async () => {
+            isOpenPopup.value = true;
             // 檢查瀏覽器是否支援 MediaDevices API
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 // 請求開啟鏡頭
@@ -122,13 +161,19 @@ createApp({
         const clickCapture = async () => {
             // 擷取影像
             const video = document.querySelector('video');
-            const canvas = document.querySelector('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            // show image on canvas 
+            const canvas = document.querySelectorAll('canvas');
+            for(let i = 0; i < canvas.length; i++){
+                canvas[i].width = video.videoWidth;
+                canvas[i].height = video.videoHeight;
+                canvas[i].getContext('2d').drawImage(video, 0, 0, canvas[i].width, canvas[i].height);
 
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0,  canvas.width, canvas.height );
+            }
+            // canvas.width = video.videoWidth;
+            // canvas.height = video.videoHeight;
+            // // show image on canvas 
+
+            // const context = canvas.getContext('2d');
+            // context.drawImage(video, 0, 0,  canvas.width, canvas.height );
             
             const img = document.createElement('img');
             img.src = canvas.toDataURL('image/png');
@@ -191,6 +236,11 @@ createApp({
         
 
         return {
+            /** popup */
+            isOpenPopup,
+            openFAB,
+            closeFAB,
+            /** popup */
             message,
             onClickGenerate,
             promptInput,
@@ -199,7 +249,8 @@ createApp({
             openCamera,
             clickCapture,
             imgData,
-            clearImage
+            clearImage,
+            isIsHasImg
         }
     }
 }).mount('#app')
