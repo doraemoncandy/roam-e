@@ -181,9 +181,7 @@
 
         <div class="flex gap-x-[12px] mt-[12px] w-full items-center relative">
             <!-- preview image -->
-            <div class="absolute top-[-30px]" v-show="isIsHasImg">
-                <canvas></canvas>
-            </div>
+            
             
             
             <a href="javascript:;" class="inline-block" @click="openCamera">
@@ -200,7 +198,10 @@
 
             <input id="upload" type="file" accept="image/*" capture="camera" class="hidden">
                 <!-- textarea -->
-                <label class="mdc-text-field mdc-text-field--outlined flex-1">
+                <label class="mdc-text-field mdc-text-field--outlined flex-1 relative">
+                    <div class="absolute bottom-[60px] w-full max-w-[200px] overflow-hidden left-0 rounded-[12px]" v-show="isIsHasImg">
+                        <img class="w-full inline-block" :src="imgURL" alt="">
+                    </div>
                     <span class="mdc-notched-outline">
                         <span class="mdc-notched-outline__leading"></span>
                         <span class="mdc-notched-outline__notch">

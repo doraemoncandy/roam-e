@@ -8,6 +8,7 @@ createApp({
         let answerArr = ref([]);
         let currentTxtNeed2Speech;
         let imgData;
+        let imgURL = ref('');
         let isIsHasImg = ref(false); // 是不是有上傳圖
         
 
@@ -176,7 +177,8 @@ createApp({
             // context.drawImage(video, 0, 0,  canvas.width, canvas.height );
             
             const img = document.createElement('img');
-            img.src = canvas.toDataURL('image/png');
+            img.src = canvas[0].toDataURL('image/png');
+            imgURL.value = img.src;
             // 將img.src 轉為 File object
             const file = await fetch(img.src).then(res => res.blob());
             console.log('file',file)
@@ -250,7 +252,8 @@ createApp({
             clickCapture,
             imgData,
             clearImage,
-            isIsHasImg
+            isIsHasImg,
+            imgURL
         }
     }
 }).mount('#app')
