@@ -1,7 +1,12 @@
 const { createApp, ref } = Vue
 
+
 createApp({
     setup() {
+
+        
+
+
         
         const message = ref('Hello vue!')
         let promptInput = ref('');
@@ -10,6 +15,28 @@ createApp({
         let imgData;
         let imgURL = ref('');
         let isIsHasImg = ref(false); // 是不是有上傳圖
+
+        //#region init setting
+
+        /**
+         * Current Setting
+         */
+
+        let settings = {
+            location: '北投捷運站', // current location
+            destination: '阿芳越南食', // destination
+            setting:{
+                init: `我是一個70歲的老人，叫佐佐木爺爺，我很喜歡花花草草，也喜歡種樹，喜歡一些異國料理，EX:越南料理的越南河粉`,
+                resstaurant: `推薦餐廳時請給我3家，用列點的方式說明店名、評價、走路距離，我會有興趣的菜色1-3道，每項不超過3字`,
+                ps: `上述這些設定，在回答時都不需要覆述一遍，只需要在需要時符合需求即可。`
+            }
+            
+        } // end: settings
+        let isFirstSetting = false; // 是否第一次設定Prompt
+
+
+
+        //#endregion init setting
         
 
 
@@ -29,23 +56,11 @@ createApp({
 
         //#region popup
         
-        //Variables
         let isOpenPopup = ref(false);
 
-        // var overlay = $("#overlay"),
-        // fab = $(".fab"),
-        // cancel = $("#cancel"),
-        // submit = $("#submit");
-
-        // //fab click
-        // fab.on('click', openFAB);
-        // overlay.on('click', closeFAB);
-        // cancel.on('click', closeFAB);
 
         function openFAB(event) {
             if (event) event.preventDefault();
-            // fab.addClass('active');
-            // overlay.addClass('dark-overlay');
             isOpenPopup.value = true;
         }
 
@@ -55,8 +70,6 @@ createApp({
                 event.stopImmediatePropagation();
             }
             isOpenPopup.value = false;
-            // fab.removeClass('active');
-            // overlay.removeClass('dark-overlay');
 
         } 
 
@@ -64,12 +77,40 @@ createApp({
 
         //#region handleText
         const handleText = (text) => {
+            console.log('handleText',text)
             // 處理data 去掉所有文字中 # 和 *  符號
             text = text.replace(/#/g, '');
             text = text.replace(/\*/g, '');
+            // 去掉所有html tag
+            text = text.replace(/<[^>]*>/g, '');
+
             return text;
         }
         //#endregion handleText
+
+        //#region  map
+        let initMap = () => {
+            const directionsService = new google.maps.DirectionsService();
+
+            const request = {
+                origin: settings.location, // 現在位置
+                destination: settings.destination,
+                travelMode: 'WALKING'
+            };
+
+            return directionsService.route(request, (result, status) => {
+            if (status === 'OK') {
+                const route = result.routes;
+                console.log('route',route)
+                return route;
+            } else {
+                console.error('Directions request failed due to ' + status);
+                // Display the route on the map.
+            }
+            });
+        }
+        //#endregion map
+
 
 
         const onClickGenerate = async () => {
@@ -81,45 +122,122 @@ createApp({
 
             let currentIndex = answerArr.value.length - 1;
 
-            if(isIsHasImg.value){
-                // 將 base64 格式的影像上傳到後端
+            // check if 選擇地點
+            const keywordsSelect = ['選擇', '我要選', '我選擇', , '我選']; 
+
+            if (keywordsSelect.some(keyword => promptInput.value.includes(keyword))) {
+            // The prompt includes a selection keyword
+            // Your code here...
+            }
+
+
+            // check if ask '怎麼去'
+            const keywordsGo = ['怎麼去', '怎麼走'];
+
+            if (keywordsGo.some(keyword => promptInput.value.includes(keyword))) {
+                // go google map api 
+                console.log('go google map api');
+                let resp = await initMap();
+                console.log('resp',resp)
+                let totalWay = resp.routes.length;
+                let wayDetail = '';
+
+                for(let i = 0; i < resp.routes.length; i++){
+                    wayDetail += `路徑${i+1}：`;
+                    let route = resp.routes[i];
+                    let legs = route.legs;
+
+                    let distance = 0;
+                    let duration = 0;
+                    for(let j = 0; j < legs.length; j++){
+                        let leg = legs[j];
+                        distance  += leg.distance.value;
+                        duration += leg.duration.value;
+
+                        // all steps 
+                        let instruction = '';
+                        for(let k = 0; k < leg.steps.length; k++){
+                            let step = leg.steps[k];
+                            // 去掉所有html tag
+                            let _currentInstruction = handleText(step.instructions);
+                            instruction +=  `第${k+1}步：${_currentInstruction}。`;
+                        }
+                        // 時間四捨五入到分鐘
+                        // 距離四捨五入到公里
+                        wayDetail += `花費約：${ Math.round(duration/60)}分鐘，距離：${distance/1000}公里，${instruction}   \n${instruction}`;
+
+                    } //end: for legs
+                } //end: for routes
+
+
+                // 路徑設定優化方式
+                let waySolution = `我查了Google MAP${promptInput.value}，總共有${totalWay}條路徑，每條路徑的資訊如下：${wayDetail}，
+                我是一個70歲的老人，你可以用親民一點的方式，幫我歸納這些資訊，希望你可以最彙整的時候，達到以下要求，
+                1. 用列點整理出來最適合的路徑 2.說明每種路徑大概要走多久 3.路徑走法希望可以用簡單好懂的方式告訴我 4.最後，希望你能提醒我路上該注意什麼 5.請不要講得太複雜字太多，用50字完成所有要求 `;
                 
-                // request need formData
-
-                const formData = new FormData();
-                formData.append('img', imgData);
-                formData.append('prompt', promptInput.value);
-
-                // 使用 FormData 物件發送請求
-                const resp = await axios.post(apiUploadImg, formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-
-                let data = resp.data.candidates[0].content.parts[0].text;
-                // 處理data 去掉所有文字中 # 和 *  符號
-                data = handleText(data);
-
-                console.log('data',data)
+                console.log('waySolution',waySolution)
+                const response = await axios.post(apiPromptChat, {
+                    // Your request body goes here
+                    prompt: waySolution
+                })
+                const data = handleText(response.data);
                 answerArr.value[currentIndex].answer = data;
                 // txt2Speech
                 txt2Speech(data);
 
             }
             else{
-                console.log('yy')
-                const response = await axios.post(apiPromptChat, {
-                    // Your request body goes here
-                    prompt: promptInput.value
-                })
-                const data = handleText(response.data);
-                console.log('data',data)
-                answerArr.value[currentIndex].answer = data;
-                // txt2Speech
-                txt2Speech(data);
+                // normal chat
+                
 
-            } //end: else
+                // check if isHasImg
+                if(isIsHasImg.value){
+                    // 將 base64 格式的影像上傳到後端
+                    
+                    // request need formData
+
+                    const formData = new FormData();
+                    formData.append('img', imgData);
+                    formData.append('prompt', promptInput.value);
+
+                    // 使用 FormData 物件發送請求
+                    const resp = await axios.post(apiUploadImg, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+
+                    let data = resp.data.candidates[0].content.parts[0].text;
+                    // 處理data 去掉所有文字中 # 和 *  符號
+                    data = handleText(data);
+
+                    console.log('data',data)
+                    answerArr.value[currentIndex].answer = data;
+                    // txt2Speech
+                    txt2Speech(data);
+
+                }
+                else{
+                    let _inputTxt = ''
+                    if(!isFirstSetting){
+                        _inputTxt = `${settings.setting.init}。${settings.setting.resstaurant}。${settings.setting.ps}。${promptInput.value}`;
+                    }
+                    else{
+                        _inputTxt = `${promptInput.value}`;
+                    }
+                    
+                    const response = await axios.post(apiPromptChat, {
+                        // Your request body goes here
+                        prompt: _inputTxt
+                    })
+                    const data = handleText(response.data);
+                    answerArr.value[currentIndex].answer = data;
+                    // txt2Speech
+                    txt2Speech(data);
+
+                } //end: else
+            } //end: else if 怎麼去
+            promptInput.value = '';
             
         }
 
@@ -169,12 +287,6 @@ createApp({
                 canvas[i].getContext('2d').drawImage(video, 0, 0, canvas[i].width, canvas[i].height);
 
             }
-            // canvas.width = video.videoWidth;
-            // canvas.height = video.videoHeight;
-            // // show image on canvas 
-
-            // const context = canvas.getContext('2d');
-            // context.drawImage(video, 0, 0,  canvas.width, canvas.height );
             
             const img = document.createElement('img');
             img.src = canvas[0].toDataURL('image/png');
@@ -237,6 +349,8 @@ createApp({
 
         
 
+        
+
         return {
             /** popup */
             isOpenPopup,
@@ -250,10 +364,11 @@ createApp({
             getReversedAnswerArr,
             openCamera,
             clickCapture,
+            openMic,
             imgData,
             clearImage,
             isIsHasImg,
-            imgURL
+            imgURL,
         }
     }
 }).mount('#app')

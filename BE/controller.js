@@ -41,6 +41,15 @@ const currentMessages = [];
 let conversationHistory = [];
 
 
+//#region RAG Setting
+// const ragPersonality =   `請稱呼我，佐佐木爺爺，我70歲了，是一位喜歡花花草草的老人，也喜歡越南料理的河粉。`;
+// const ragModelPersonality = `你好佐佐木木爺爺，了解你喜歡花花草草，也知道你喜歡越南料理的河粉：`;
+// conversationHistory.push({ role: 'user', parts: [{ text: `${ragPersonality}` }] });
+// conversationHistory.push({ role: 'model', parts: [{ text: `${ragModelPersonality}` }] });
+
+
+//#endregion RAG Setting
+
 
 //#region  T2I
 
