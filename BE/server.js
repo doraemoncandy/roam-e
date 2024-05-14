@@ -10,7 +10,7 @@ const multer  = require('multer');
 const upload = multer({ dest: 'uploads/' }); // 將上傳的檔案儲存到 'uploads' 資料夾
 
 // api functions
-const { generateResponse, generateT2Sresponse, generateImgContent} = require('./controller');
+const { generateResponse, generateT2Sresponse, generateImgContent, generateS2Tresponse} = require('./controller');
 
 // env variable 
 const dotenv = require('dotenv');
@@ -50,6 +50,10 @@ app.post('/generateImg', upload.single('img'), generateImgContent);
  */
 app.post('/t2s', generateT2Sresponse);
 
+/**
+ * s2t 語音轉文字 ！這個沒有用到
+ */
+app.post('/st2', generateS2Tresponse)
 
 
 

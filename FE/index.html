@@ -198,7 +198,7 @@
                 </span>
             </label>
 
-            <input id="upload" type="file" accept="image/*" capture="camera" class="hidden">
+            <input id="upload" @change="uploadImgChange" type="file" accept="image/*" capture="camera" class="hidden">
                 <!-- textarea -->
                 <label class="mdc-text-field mdc-text-field--outlined flex-1 relative">
                     <div class="absolute bottom-[60px] w-full max-w-[200px] overflow-hidden left-0 rounded-[12px]" v-show="isIsHasImg">
@@ -215,9 +215,12 @@
                         aria-labelledby="my-label-id">
                 </label>
                 <!-- end of textarea -->
-                <a href="javascript:;" v-if="promptInput == '' " class="inline-block">
-                    <span class="material-symbols-outlined">
+                <a href="javascript:;" v-if="promptInput == '' " class="inline-block" @click="openMic">
+                    <span class="material-symbols-outlined" v-if="!isInMic">
                         mic
+                    </span>
+                    <span class="material-symbols-outlined" v-else>
+                        graphic_eq
                     </span>
                 </a>
                 <button  v-else type="button" class="cursor-pointer"   @click="onClickGenerate">

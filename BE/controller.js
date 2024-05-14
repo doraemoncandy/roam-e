@@ -151,8 +151,6 @@ let generateImgContent = async (req, res) => {
   const { prompt } = req.body;
   const img = req.file; // multer 會將上傳的檔案放在 req.file
 
-  console.log('img', img)
-
 
   // 讀取image內容
   const fileContent = fs.readFileSync(img.path);
@@ -225,8 +223,26 @@ let generateT2Sresponse = async (req, res) => {
 
 //#region  S2T
 
+let generateS2Tresponse = async (req, res) => {
+  const client = new speech.SpeechClient();
+  const filename = req.file.path;
+  const config = {
+    encoding: 'LINEAR16', // Audio encoding of the recorded audio
+    sampleRateHertz: 16000, // Sample rate of the audio
+    languageCode: 'zh-TW', // Language code for the audio
+  };
+
+  const request = {
+    config: config,
+    audio: {
+      content: audioData, // Replace with the actual audio data
+    },
+  };
+}
+
+
 //#endregion S2T
 
 //#endregion voice
 
-module.exports = { generateResponse, generateT2Sresponse, generateImgContent };
+module.exports = { generateResponse, generateT2Sresponse, generateImgContent, generateS2Tresponse };

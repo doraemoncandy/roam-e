@@ -14,7 +14,9 @@ createApp({
         let currentTxtNeed2Speech;
         let imgData;
         let imgURL = ref('');
+        let uploadImgFile = ref(null);
         let isIsHasImg = ref(false); // 是不是有上傳圖
+        let isInMic = ref(false); // 是不是在使用麥克風
 
         //#region init setting
 
@@ -195,10 +197,18 @@ createApp({
                     // 將 base64 格式的影像上傳到後端
                     
                     // request need formData
-
+                    console.log('post imgData',imgData)
+                    // 改filename 為 img 給後端用
+                    imgData.filename = 'img';
                     const formData = new FormData();
+                
                     formData.append('img', imgData);
                     formData.append('prompt', promptInput.value);
+
+                    // Log FormData entries
+                    for (let [key, value] of formData.entries()) {
+                        console.log(key, value);
+                    }
 
                     // 使用 FormData 物件發送請求
                     const resp = await axios.post(apiUploadImg, formData, {
@@ -293,6 +303,8 @@ createApp({
             imgURL.value = img.src;
             // 將img.src 轉為 File object
             const file = await fetch(img.src).then(res => res.blob());
+            // 幫File 給 filename
+            file.filename = 'img';
             console.log('file',file)
 
             // 將擷取的影像轉成 base64 格式
@@ -324,28 +336,45 @@ createApp({
             recognition.maxAlternatives = 1; // 返回最多 1 個結果
 
             recognition.start(); // 開始識別
+            isInMic.value = true;
 
             recognition.onresult = function(event) {
-                // 當識別結果返回時，將結果傳遞給 gemini 的 speech2txt
                 const speech = event.results[0][0].transcript;
-
-                // 傳遞結果給 gemini 的 speech2txt
-                // 你需要替換這裡的 URL 和數據格式以適應你的後端
-                axios.post('https://your-gemini-api/speech2txt', { speech: speech })
-                    .then(function(response) {
-                        console.log(response.data);
-                    })
-                    .catch(function(error) {
-                        console.log(error);
-                    });
-            };
+                promptInput.value += speech;
+                isInMic.value = false;
+                
+            };  
 
             recognition.onerror = function(event) {
                 console.log('Error occurred in recognition: ' + event.error);
+                isInMic.value = false;
             };
         }
 
         //#endregion open mic
+
+        //#region upload Image 
+        let uploadImgChange = (e) => {
+            console.log('uploadImgChange',e)
+            console.log('uploadImgFile',uploadImgFile.value)
+            const file = e.target.files[0];
+            
+            console.log('file', file)
+            if(file){
+                imgURL.value = URL.createObjectURL(file);
+                isIsHasImg.value = true;
+                console.log('preview imgURL',imgURL.value)
+                imgData = file; // for api post img data
+            }
+            else{
+                imgURL.value = '';
+                isIsHasImg.value = false;
+                // imgData = null;
+            }
+            // get file and show on html preview
+
+        }
+        //#endregion upload Image
 
         
 
@@ -365,10 +394,13 @@ createApp({
             openCamera,
             clickCapture,
             openMic,
+            isInMic,
             imgData,
             clearImage,
             isIsHasImg,
             imgURL,
+            uploadImgFile,
+            uploadImgChange,
         }
     }
 }).mount('#app')
